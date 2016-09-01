@@ -30,5 +30,5 @@ def onPress():
        
 if cmds.draggerContext(context, exists=True):
     cmds.deleteUI(context)
-cmds.draggerContext(context, dragCommand=onPress, name=context, cursor='crossHair', ds="Yeah Drag Me")
+cmds.draggerContext(context, dragCommand=onPress, name=context, cursor='crossHair')
 cmds.setToolTo(context)
