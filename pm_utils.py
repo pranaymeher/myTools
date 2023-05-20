@@ -168,3 +168,72 @@ def align_to_vector( in_object, primary_axis, up_axis, up_vec ):
             float_seq = [ *third_vec, 0, *prim_vec, 0, *sec_vec, 0, *in_obj_pos, 1]
     
     return float_seq
+
+
+
+def build_aligned_matrix( primary_axis, primary_vec, up_axis, up_vec, pos=[0,0,0] ):
+    '''
+        This function builds a matrix in which the primary axis is perfectly
+        aligned to the provided primary_vec and the remaining two axes are
+        calculated based on the up_axis and up_vec
+        
+        Arguments:
+            primary_axis -- string - The values can only be x, y or z. The primary
+                            axis will maintain its direction after the alignment
+            primary_vec -- vector - The vector direction the primary axis will align to
+            up_axis -- string - The values can only be x, y or z. The up_axis will
+                                orient itself to match as closely as possible to the
+                                provided up_vec
+            up_vec -- vector - The up axis will align itself to match with this vector
+            
+        Returns:
+            float_seg -- [float_list] - This is a float list of 16 values. Can be used as
+                                a vector in the xform command
+                                
+        Example :
+            build_aligned_matrix( 'x', [0.478, -0.487, 0.730], 'y', [0, 1, 0])
+    '''
+    
+    primary_axis = primary_axis.lower()
+    up_axis = up_axis.lower()
+    assert primary_axis in 'xyz', 'Primary axis value can not be other than x,y or z'
+    assert up_axis in 'xyz', 'Up axis value can not be other than x,y or z'
+    
+    vec_dict = {    'x' : [1, 0, 0],
+                    'y' : [0, 1, 0],
+                    'z' : [0, 0, 1]
+            }
+            
+    vec_pair = f'{primary_axis}{up_axis}'
+    flip_vec_pair = [ 'xz', 'yx', 'zy' ]
+    
+    prim_vec = om.MVector( primary_vec )    
+    sec_vec_temp = om.MVector( up_vec )
+    
+    if vec_pair in flip_vec_pair:
+        third_vec = sec_vec_temp ^ prim_vec
+    else:
+        third_vec = prim_vec ^ sec_vec_temp
+    third_vec.normalize()
+    
+    if vec_pair in flip_vec_pair:
+        sec_vec = prim_vec ^ third_vec 
+    else:
+        sec_vec = third_vec ^ prim_vec
+    sec_vec.normalize()
+    
+    match vec_pair:
+        case 'zy':
+            float_seq = [ *third_vec, 0, *sec_vec, 0, *prim_vec, 0, *pos, 1]
+        case 'zx':
+            float_seq = [ *sec_vec, 0, *third_vec, 0, *prim_vec, 0, *pos, 1]
+        case 'xy':
+            float_seq = [ *prim_vec, 0, *sec_vec, 0, *third_vec, 0, *pos, 1]
+        case 'xz':
+            float_seq = [ *prim_vec, 0, *third_vec, 0, *sec_vec, 0, *pos, 1]
+        case 'yx':
+            float_seq = [ *sec_vec, 0, *prim_vec, 0, *third_vec, 0, *pos, 1]
+        case 'yz':
+            float_seq = [ *third_vec, 0, *prim_vec, 0, *sec_vec, 0, *pos, 1]
+    
+    return float_seq
